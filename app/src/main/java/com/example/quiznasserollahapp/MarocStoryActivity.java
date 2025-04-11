@@ -22,18 +22,24 @@ import androidx.core.content.ContextCompat;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
-
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MarocStoryActivity extends AppCompatActivity {
 
-    private TextView tvStory;
+    private TextView tvStory, tvUserSpeech;
     private Button btnNext;
     private RadioGroup radioGroup;
-    private RadioButton radioName, radioAnonymous;
-    private RadioButton radioYes;
+    private RadioButton radioName, radioAnonymous, radioYes;
     private int step = 1;
     private String userName = "Anonymous";
 
@@ -46,14 +52,14 @@ public class MarocStoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maroc_story);
 
-        // Initialize views
         tvStory = findViewById(R.id.tvStory);
+        tvUserSpeech = findViewById(R.id.tvUserSpeech);
         btnNext = findViewById(R.id.btnNext);
         radioGroup = findViewById(R.id.radioGroup);
         radioName = findViewById(R.id.radioName);
         radioAnonymous = findViewById(R.id.radioAnonymous);
 
-        // Firebase user
+        // Firebase user name
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             if (user.getDisplayName() != null && !user.getDisplayName().isEmpty()) {
@@ -65,7 +71,7 @@ public class MarocStoryActivity extends AppCompatActivity {
             }
         }
 
-        // Step 1 UI
+        // First step UI
         tvStory.setText("She looks at you and says: \"What’s your name?\"");
         radioGroup.setVisibility(View.VISIBLE);
         radioName.setText(userName);
@@ -85,7 +91,6 @@ public class MarocStoryActivity extends AppCompatActivity {
 
                 tvStory.setText("She says: \"My village has sick people who need help. Will you come with me?\"");
 
-                // Update UI for Step 2
                 radioGroup.removeAllViews();
                 radioYes = new RadioButton(this);
                 radioYes.setId(View.generateViewId());
@@ -96,14 +101,17 @@ public class MarocStoryActivity extends AppCompatActivity {
 
                 step = 2;
 
-                // Start listening
                 checkAudioPermissionAndStartListening();
             } else if (step == 2) {
-                Intent intent = new Intent(MarocStoryActivity.this, VillageActivity.class);
-                startActivity(intent);
-                finish();
+                startNextActivity();
             }
         });
+    }
+
+    private void startNextActivity() {
+        Intent intent = new Intent(MarocStoryActivity.this, VillageActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void checkAudioPermissionAndStartListening() {
@@ -133,33 +141,23 @@ public class MarocStoryActivity extends AppCompatActivity {
             @Override public void onRmsChanged(float rmsdB) {}
             @Override public void onBufferReceived(byte[] buffer) {}
             @Override public void onEndOfSpeech() {}
-            @Override public void onError(int error) {
+
+            @Override
+            public void onError(int error) {
                 if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
                     tvStory.setText("Didn’t catch that. Please say 'Yes'.");
-                    startVoiceRecognition(); // Retry
+                    new Handler().postDelayed(() -> startVoiceRecognition(), 3000);
                 }
             }
 
             @Override
             public void onResults(Bundle results) {
                 ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                if (matches != null) {
-                    String userSpeech = matches.get(0).toLowerCase();
+                if (matches != null && !matches.isEmpty()) {
+                    String userSpeech = matches.get(0);
+                    tvUserSpeech.setText("You said: " + userSpeech);
+                    checkIfUserSaidYes(userSpeech);
 
-                    if (userSpeech.contains("yes")) {
-                        radioYes.setChecked(true);
-                        btnNext.performClick();
-                    } else {
-                        tvStory.setText("You said: \"" + userSpeech + "\". Please say 'Yes'.");
-                        startVoiceRecognition(); // Try again
-
-                        // 🔥 OPENAI USE CASE:
-                        // Here you can call OpenAI's API with the user's speech.
-                        // Example (pseudo-code):
-                        //
-                        // String reply = openAiApi.send(userSpeech);
-                        // tvStory.setText("AI says: " + reply);
-                    }
                 }
             }
 
@@ -167,11 +165,23 @@ public class MarocStoryActivity extends AppCompatActivity {
             @Override public void onEvent(int eventType, Bundle params) {}
         });
 
-        // Give mic a little time to get ready
-        new Handler().postDelayed(() -> {
-            speechRecognizer.startListening(intent);
-        }, 800);
+        new Handler().postDelayed(() -> speechRecognizer.startListening(intent), 800);
     }
+
+    private void checkIfUserSaidYes(String userInput) {
+        String normalized = userInput.trim().toLowerCase();
+        if (normalized.contains("yes") || normalized.contains("yeah") || normalized.contains("sure") || normalized.contains("okay")) {
+            tvUserSpeech.setText("You said: " + userInput + "\nInterpreted as YES.");
+            radioYes.setChecked(true);
+            step = 2;
+            startNextActivity();
+        } else {
+            tvStory.setText("Didn't hear a clear 'Yes'. Please confirm by saying 'Yes'.");
+            new Handler().postDelayed(this::startVoiceRecognition, 3000);
+        }
+    }
+
+
 
     @Override
     protected void onDestroy() {

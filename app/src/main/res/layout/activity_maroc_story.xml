@@ -59,6 +59,19 @@
             android:buttonTint="@color/old_paper" />
     </RadioGroup>
 
+    <!-- User speech TextView -->
+    <TextView
+        android:id="@+id/tvUserSpeech"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/radioGroup"
+        android:layout_marginTop="8dp"
+        android:text=""
+        android:textSize="16sp"
+        android:textColor="@color/old_paper"
+        android:fontFamily="@font/merriweather"
+        android:padding="8dp" />
+
     <!-- Next button at the bottom -->
     <Button
         android:id="@+id/btnNext"
