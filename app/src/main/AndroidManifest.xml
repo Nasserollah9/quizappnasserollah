@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <!-- Location Permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -15,43 +15,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Quiznasserollahapp"
         tools:targetApi="31">
-        <activity
-            android:name=".AccidentActivity"
-            android:exported="false" />
-        <!-- Main Activity -->
-        <activity
-            android:name=".login"
-            android:exported="true">
+
+        <!-- ✅ Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAvKW5tvriCH_ns7zO4cfiUzB8UK6Jf1fg" />
+
+        <activity android:name=".AccidentActivity" android:exported="false" />
+        <activity android:name=".login" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Other Activities -->
-        <activity
-            android:name=".QuizActivity"
-            android:exported="false" />
-        <activity
-            android:name=".VillageActivity"
-            android:exported="false" />
-        <activity
-            android:name=".register"
-            android:exported="false" />
-        <activity
-            android:name=".storybegin"
-            android:exported="false" />
-        <activity
-            android:name=".MarocStoryActivity"
-            android:exported="false" /> <!-- New Activities for Quiz Results -->
-        <activity
-            android:name=".DefeatActivity"
-            android:exported="false" /> <!-- Activity for Defeat -->
-        <activity
-            android:name=".KingOfVillageActivity"
-            android:exported="false" /> <!-- Activity for King of Village -->
-        <activity
-            android:name=".YouAreAliveActivity"
-            android:exported="false" />
+        </activity>
+        <activity android:name=".QuizActivity" android:exported="false" />
+        <activity android:name=".VillageActivity" android:exported="false" />
+        <activity android:name=".register" android:exported="false" />
+        <activity android:name=".storybegin" android:exported="false" />
+        <activity android:name=".MarocStoryActivity" android:exported="false" />
+        <activity android:name=".DefeatActivity" android:exported="false" />
+        <activity android:name=".KingOfVillageActivity" android:exported="false" />
+        <activity android:name=".YouAreAliveActivity" android:exported="false" />
     </application>
 
 </manifest>
